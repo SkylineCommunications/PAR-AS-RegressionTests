@@ -5,12 +5,12 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{1F328CB2-2466-4CAD-BF2C-CBFD7C69BA12}</ProjectGuid>
+    <ProjectGuid>{DB87FC4F-A6CD-4A45-A51D-CCA7ED829F2F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RT_Customer_MyFirstRegressionTest_1</RootNamespace>
-    <AssemblyName>RT_Customer_MyFirstRegressionTest_1</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <RootNamespace>RT_PAR_TECHEX_DARWIN_1</RootNamespace>
+    <AssemblyName>RT_PAR_TECHEX_DARWIN_1</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <LangVersion>
     </LangVersion>
@@ -24,7 +24,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\Internal\Code Analysis\qaction-debug.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>bin\Debug\RT_Customer_MyFirstRegressionTest_1.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\RT_PAR_TECHEX_DARWIN_1.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,7 +34,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\Internal\Code Analysis\qaction-release.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>bin\Release\RT_Customer_MyFirstRegressionTest_1.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\RT_PAR_TECHEX_DARWIN_1.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
@@ -43,29 +43,19 @@
     <Reference Include="System" />
     <AdditionalFiles Include="stylecop.json" />
     <Content Include=".editorconfig" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RT_Customer_MyFirstRegressionTest_1.cs" />
-    <Compile Include="TestCases\TestCaseExample.cs" />
+    <Compile Include="RT_PAR_TECHEX_DARWIN_1.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>13.0.3</Version>
+    <PackageReference Include="Skyline.DataMiner.Core.DataMinerSystem.Automation">
+      <Version>1.1.2.2</Version>
     </PackageReference>
-    <PackageReference Include="SharpZipLib">
-      <Version>1.4.2</Version>
+    <PackageReference Include="Skyline.DataMiner.Core.DataMinerSystem.Common">
+      <Version>1.1.2.2</Version>
     </PackageReference>
     <PackageReference Include="Skyline.DataMiner.Dev.Automation">
-      <Version>10.2.0.11</Version>
-    </PackageReference>
-    <PackageReference Include="Skyline.DataMiner.Dev.Common">
       <Version>10.2.0.11</Version>
     </PackageReference>
     <PackageReference Include="Skyline.DataMiner.Utils.QAPortalAPI">
@@ -86,11 +76,11 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties DisLinkedXmlFile="..\RT_Customer_MyFirstRegressionTest.xml" DisProjectType="automationScriptProject" DisLinkId="1" />
+      <UserProperties DisLinkId="1" DisProjectType="automationScriptProject" DisLinkedXmlFile="..\RT_PAR_TECHEX_DARWIN.xml" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
+	   Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
   <Target Name="AfterBuild">
