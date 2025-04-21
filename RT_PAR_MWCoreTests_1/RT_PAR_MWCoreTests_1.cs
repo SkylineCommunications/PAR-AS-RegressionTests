@@ -59,15 +59,21 @@ namespace RT_PAR_MWCoreTests_1
 
 	using Library.Tests;
 	using RT_PAR_MWCoreTests_1;
+	using RT_PAR_MWCoreTests_1.TestCases;
+	using Skyline.Automation.Utils.MWCore;
+	using Skyline.DataMiner.Core.DataMinerSystem.Common;
+	using Constants = Library.Consts.Constants;
 
 	/// <summary>
 	/// Represents a DataMiner Automation script.
 	/// </summary>
 	public class Script
 	{
-		private const string TestName = "RT_Customer_MyFirstRegressionTest";
-		private const string TestDescription = "Regression Test to validate something.";
+		private const string TestName = "RT_PAR_MWCoreTests";
+		private const string TestDescription = "Regression Test to validate crosspoint connection.";
+		private List<ColumnFilter> UpdateCrosspointsFilter { get; set; }
 
+		private MWCoreElement MWCore { get; set; }
 		/// <summary>
 		/// The Script entry point.
 		/// </summary>
@@ -76,6 +82,20 @@ namespace RT_PAR_MWCoreTests_1
 		{
 			try
 			{
+
+				UpdateCrosspointsFilter = new List<ColumnFilter>
+				{
+					new ColumnFilter{ Pid = 8908, Value = Constants.Source1StreamFK }
+				};
+				Test test = new Test(TestName, TestDescription);
+				var element = engine.GetScriptParam("MWCore Element").Value;
+
+				MWCore = new MWCoreElement(engine, element);
+				test.AddTestCase(new SetCrosspoint(TestName, MWCore, UpdateCrosspointsFilter));
+
+				test.Execute(engine);
+				test.PublishResults(engine);
+
 				//Test myTest = new Test(TestName, TestDescription);
 				//myTest.AddTestCase(
 				//	new TestCaseExample("Test 1"),

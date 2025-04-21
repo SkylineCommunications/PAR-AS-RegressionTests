@@ -5,7 +5,7 @@
 	<Type>Automation</Type>
 	<Author>SKYLINE2\AlexJO</Author>
 	<CheckSets>FALSE</CheckSets>
-	<Folder></Folder>
+	<Folder>Regression Tests</Folder>
 
 	<Protocols>
 	</Protocols>
@@ -14,6 +14,9 @@
 	</Memory>
 
 	<Parameters>
+		<ScriptParameter id="2" type="string" values="">
+			<Description>MWCore Element</Description>
+		</ScriptParameter>
 	</Parameters>
 
 	<Script>
