@@ -49,48 +49,77 @@ dd/mm/2025	1.0.0.1		XXX, Skyline	Initial version
 ****************************************************************************
 */
 
-namespace RT_PAR_MWCoreTests_1
+namespace RT_PAR_TECHEX_DARWIN_1
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Globalization;
-	using System.Text;
-	using Skyline.DataMiner.Automation;
-
+	using System.Linq;
+	using Library.Consts;
+	using Library.TestCases;
 	using Library.Tests;
-	using RT_PAR_MWCoreTests_1;
+	using Skyline.DataMiner.Automation;
+	using Skyline.DataMiner.Core.DataMinerSystem.Automation;
+	using Skyline.DataMiner.Core.DataMinerSystem.Common;
+	using Skyline.DataMiner.Net.Messages;
+	using DmsElementState = Skyline.DataMiner.Core.DataMinerSystem.Common.ElementState;
 
 	/// <summary>
 	/// Represents a DataMiner Automation script.
 	/// </summary>
 	public class Script
 	{
-		private const string TestName = "RT_Customer_MyFirstRegressionTest";
-		private const string TestDescription = "Regression Test to validate something.";
+		private const string TestName = "RT_PAR_TECHEX_DARWIN";
+		private const string TestDescription = "Regression Test to Techex Darwin Flows.";
 
 		/// <summary>
-		/// The Script entry point.
+		/// The script entry point.
 		/// </summary>
 		/// <param name="engine">Link with SLAutomation process.</param>
 		public void Run(IEngine engine)
 		{
 			try
 			{
-				//Test myTest = new Test(TestName, TestDescription);
-				//myTest.AddTestCase(
-				//	new TestCaseExample("Test 1"),
-				//	new TestCaseExample("Test 2"));
+				var dms = engine.GetDms();
 
-				//myTest.Execute(engine);
-				//myTest.PublishResults(engine);
+				// Initializing regression Test
+				Test darwinTest = new Test(TestName, TestDescription);
+
+				// Getting First Darwin element
+				var allElements = dms.GetElements();
+				var darwinElement = allElements.FirstOrDefault(x => x.Protocol.Name == "Techex Darwin" && x.Protocol.Version == "Production" );
+
+				// Process last Kafka message per Module
+				var now = DateTime.Now;
+				var modulesTable = darwinElement.GetTable(13000);
+
+				var activeKafkaModules = modulesTable.QueryData(new List<ColumnFilter>
+				{
+					new ColumnFilter
+					{
+						Pid = 13004,
+						ComparisonOperator = ComparisonOperator.Equal,
+						Value = "1", // Enabled
+					},
+				});
+
+				foreach (var kafkaModule in activeKafkaModules)
+				{
+					var lastProcessing = DateTime.FromOADate(Convert.ToDouble(kafkaModule[4]));
+					var timeSinceLastMessage = now - lastProcessing;
+
+					darwinTest.AddTestCase(
+					new DarwinTestCase(
+						String.Format("Test case for Kafka Module {0}", kafkaModule[0]),
+						timeSinceLastMessage));
+				}
+
+				// Sending test cases to QA Portal
+				darwinTest.Execute(engine);
+				darwinTest.PublishResults(engine);
 			}
 			catch (Exception e)
 			{
-				engine.Log($"{TestName} failed: {e}");
-			}
-			finally
-			{
-				// TODO: add cleanup here (if applicable)
+				engine.ExitFail("Run|Something went wrong: " + e);
 			}
 		}
 	}
