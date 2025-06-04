@@ -5,9 +5,9 @@
 	using QAPortalAPI.Models.ReportingModels;
 	using Skyline.DataMiner.Automation;
 
-	public class DarwinTestCase : ITestCase
+	public class DarwinTimespanTestCase : ITestCase
 	{
-		public DarwinTestCase(string name, TimeSpan timeSinceLastMessage)
+		public DarwinTimespanTestCase(string name, TimeSpan timeSinceLastMessage)
 		{
 			if (String.IsNullOrWhiteSpace(name))
 			{
@@ -22,7 +22,7 @@
 
 		public TestCaseReport TestCaseReport { get; private set; }
 
-		public PerformanceTestCaseReport PerformanceTestCaseReport { get; private set; }
+		public PerformanceTestCaseReport PerformanceTestCaseReport { get; }
 
 		public TimeSpan TimeSinceLastMessage { get; set; }
 

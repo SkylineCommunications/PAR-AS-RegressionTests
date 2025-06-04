@@ -53,7 +53,9 @@ namespace RT_PAR_TECHEX_DARWIN_1
 {
 	using System;
 	using System.Collections.Generic;
+	using System.ComponentModel;
 	using System.Linq;
+	using System.Threading;
 	using Library.Consts;
 	using Library.TestCases;
 	using Library.Tests;
@@ -86,13 +88,29 @@ namespace RT_PAR_TECHEX_DARWIN_1
 
 				// Getting First Darwin element
 				var allElements = dms.GetElements();
-				var darwinElement = allElements.FirstOrDefault(x => x.Protocol.Name == "Techex Darwin" && x.Protocol.Version == "Production" );
+				var darwinElement = allElements.FirstOrDefault(x => x.Protocol.Name == "Techex Darwin" && x.Name == TechexDarwinConstants.DarwinElementName);
 
-				// Process last Kafka message per Module
-				var now = DateTime.Now;
-				var modulesTable = darwinElement.GetTable(13000);
+				KafkaUptimeTest(darwinTest, darwinElement);
 
-				var activeKafkaModules = modulesTable.QueryData(new List<ColumnFilter>
+				PesSwitchTest(engine, darwinTest, darwinElement);
+
+				// Sending test cases to QA Portal
+				darwinTest.Execute(engine);
+				darwinTest.PublishResults(engine);
+			}
+			catch (Exception e)
+			{
+				engine.ExitFail("Run|Something went wrong: " + e);
+			}
+		}
+
+		private static void KafkaUptimeTest(Test darwinTest, IDmsElement darwinElement)
+		{
+			// Process last Kafka message per Module
+			var now = DateTime.Now;
+			var modulesTable = darwinElement.GetTable(13000);
+
+			var activeKafkaModules = modulesTable.QueryData(new List<ColumnFilter>
 				{
 					new ColumnFilter
 					{
@@ -102,24 +120,78 @@ namespace RT_PAR_TECHEX_DARWIN_1
 					},
 				});
 
-				foreach (var kafkaModule in activeKafkaModules)
-				{
-					var lastProcessing = DateTime.FromOADate(Convert.ToDouble(kafkaModule[4]));
-					var timeSinceLastMessage = now - lastProcessing;
+			foreach (var kafkaModule in activeKafkaModules)
+			{
+				var lastProcessing = DateTime.FromOADate(Convert.ToDouble(kafkaModule[4]));
+				var timeSinceLastMessage = now - lastProcessing;
 
-					darwinTest.AddTestCase(
-					new DarwinTestCase(
-						String.Format("Test case for Kafka Module {0}", kafkaModule[0]),
-						timeSinceLastMessage));
+				darwinTest.AddTestCase(
+				new DarwinTimespanTestCase(
+					String.Format("Test case for Kafka Module {0}", kafkaModule[0]),
+					timeSinceLastMessage));
+			}
+		}
+
+		private static void PesSwitchTest(IEngine engine, Test darwinTest, IDmsElement darwinElement)
+		{
+			var pesSwitchName = TechexDarwinConstants.DarwinPesSwitch;
+			var pesSwitchTable = darwinElement.GetTable(TechexDarwinConstants.PesSwitchTablePid);
+			var testPesSwitchConfig = pesSwitchTable.QueryData(new List<ColumnFilter>
+				{
+					new ColumnFilter
+					{
+						Pid = TechexDarwinConstants.PesSwitchIdPid_4001,
+						ComparisonOperator = ComparisonOperator.Equal,
+						Value = pesSwitchName,
+					},
+				}).ToArray();
+
+			if (testPesSwitchConfig.Length == 1)
+			{
+				var pesSwitchRow = testPesSwitchConfig[0];
+				var currentSource = Convert.ToString(pesSwitchRow[TechexDarwinConstants.PesSwitchSwitchActionSourceIdx_4008]);
+				var availabeSources = new List<string>(Convert.ToString(pesSwitchRow[TechexDarwinConstants.PesSwitchActionDependencyValuesIdx_4011]).Split(';'));
+				if (availabeSources.Contains(currentSource))
+				{
+					availabeSources.Remove(currentSource);
 				}
 
-				// Sending test cases to QA Portal
-				darwinTest.Execute(engine);
-				darwinTest.PublishResults(engine);
-			}
-			catch (Exception e)
-			{
-				engine.ExitFail("Run|Something went wrong: " + e);
+				var newSource = availabeSources.FirstOrDefault();
+				if (!String.IsNullOrEmpty(newSource))
+				{
+					pesSwitchRow[TechexDarwinConstants.PesSwitchSwitchActionSourceIdx_4008] = newSource;
+					pesSwitchRow[TechexDarwinConstants.PesSwitchSwitchForceValueIdx_4009] = 0;
+
+					pesSwitchTable.SetRow(TechexDarwinConstants.DarwinPesSwitch, pesSwitchRow);
+					var engineElement = engine.FindElement(darwinElement.Name);
+					engineElement.SetParameterByPrimaryKey(TechexDarwinConstants.PesSwitchActionPid_4007, TechexDarwinConstants.DarwinPesSwitch, 4);
+					Thread.Sleep(60000);
+					var pesMetricsTable = darwinElement.GetTable(TechexDarwinConstants.PesSwitchKafkaMetricsTablePid);
+					var testPesSwitchMetrics = pesMetricsTable.QueryData(new List<ColumnFilter>
+						{
+							new ColumnFilter
+							{
+								Pid = TechexDarwinConstants.PesSwitchKafkaMetricsConfigurationKeyPid_50011,
+								ComparisonOperator = ComparisonOperator.Equal,
+								Value = TechexDarwinConstants.DarwinPesSwitch,
+							},
+						}).ToArray();
+
+					foreach (var metricsRow in testPesSwitchMetrics)
+					{
+						darwinTest.AddTestCase(
+							new DarwinStringTestCase(
+								$"Test case for PES Switch {TechexDarwinConstants.DarwinPesSwitch} from {currentSource} to {newSource}",
+								Convert.ToString(metricsRow[TechexDarwinConstants.PesSwitchKafkaMetricsCurrentSourceIdx_50008]),
+								newSource));
+					}
+
+					pesSwitchRow[TechexDarwinConstants.PesSwitchSwitchActionSourceIdx_4008] = currentSource;
+					pesSwitchRow[TechexDarwinConstants.PesSwitchSwitchForceValueIdx_4009] = 0;
+
+					pesSwitchTable.SetRow(TechexDarwinConstants.DarwinPesSwitch, pesSwitchRow);
+					engineElement.SetParameterByPrimaryKey(TechexDarwinConstants.PesSwitchActionPid_4007, TechexDarwinConstants.DarwinPesSwitch, 4);
+				}
 			}
 		}
 	}
